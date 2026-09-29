@@ -1,7 +1,7 @@
 const express = require('express');
 const appInsights = require('applicationinsights');
 
-// Configuração do Application Insights
+// Application Insights - só inicia se a connection string estiver configurada no WebApp
 if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
     appInsights.setup(process.env.APPLICATIONINSIGHTS_CONNECTION_STRING)
         .setAutoDependencyCorrelation(true)
@@ -21,14 +21,14 @@ const sql = require('mssql');
 const app = express();
 const port = process.env.PORT || 8080;
 
-// Configuração do Banco de Dados (Os alunos devem preencher as variáveis no Azure WebApp)
+// Dados de conexão vêm das variáveis de ambiente do WebApp (az webapp config appsettings set)
 const dbConfig = {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    server: process.env.DB_SERVER, // Ex: meuserver.database.windows.net
+    server: process.env.DB_SERVER,
     database: process.env.DB_NAME,
     options: {
-        encrypt: true, // Necessário para Azure SQL
+        encrypt: true,
         trustServerCertificate: false
     }
 };
@@ -40,7 +40,7 @@ app.get('/', (req, res) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>FIAP - Atividade DevOps</title>
+        <title>Catálogo de Filmes - 2TSCPW</title>
         <style>
             body {
                 background-color: #1a1a1a;
@@ -59,11 +59,11 @@ app.get('/', (req, res) => {
                 padding: 40px;
                 border-radius: 12px;
                 box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
-                border-top: 5px solid #ED145B;
+                border-top: 5px solid #1E90FF;
                 max-width: 600px;
             }
             h1 {
-                color: #ED145B;
+                color: #1E90FF;
                 margin-top: 0;
             }
             p {
@@ -75,7 +75,7 @@ app.get('/', (req, res) => {
                 display: inline-block;
                 margin-top: 20px;
                 padding: 12px 24px;
-                background-color: #ED145B;
+                background-color: #1E90FF;
                 color: #ffffff;
                 text-decoration: none;
                 border-radius: 6px;
@@ -83,7 +83,7 @@ app.get('/', (req, res) => {
                 transition: background-color 0.3s;
             }
             .btn:hover {
-                background-color: #c0104a;
+                background-color: #1570c9;
             }
             .badge {
                 display: inline-block;
@@ -98,30 +98,30 @@ app.get('/', (req, res) => {
     </head>
     <body>
         <div class="container">
-            <div class="badge">Deploy Status: Sucesso! ✅</div>
+            <div class="badge">Deploy via GitHub Actions ✅</div>
             <h1>Vinicius, Vinicios e Gustavo - Filmes 🎬</h1>
-            <p>Parabéns! Sua aplicação Node.js foi implementada com sucesso no Azure Web App através da sua esteira CI/CD.</p>
-            <p>O App Insights já está monitorando sua aplicação.</p>
-            <a href="/tema" class="btn">🚀 Ver Dados do Banco</a>
+            <p>Nosso catálogo de filmes nacionais rodando no Azure Web App, com banco no Azure SQL.</p>
+            <p>Monitoramento feito pelo Application Insights.</p>
+            <a href="/tema" class="btn">🎬 Ver filmes cadastrados</a>
         </div>
     </body>
     </html>
     `);
 });
 
+// Lista os filmes cadastrados na tabela Filmes
 app.get('/tema', async (req, res) => {
     try {
-        // ALUNOS: Usem a configuração dbConfig para conectar no banco e fazer o SELECT na tabela do tema escolhido!
         await sql.connect(dbConfig);
-           const result = await sql.query`SELECT * FROM Filmes`; // ALTERAR AQUI!
-        
+        const result = await sql.query`SELECT Id, Titulo, Genero, Ano FROM Filmes ORDER BY Ano DESC`;
+
         res.json(result.recordset);
     } catch (err) {
-        console.error("Erro ao conectar no banco:", err);
-        res.status(500).send("Erro ao buscar os dados: " + err.message);
+        console.error("Erro ao consultar a tabela Filmes:", err);
+        res.status(500).send("Erro ao buscar os filmes: " + err.message);
     }
 });
 
 app.listen(port, () => {
-    console.log(`Server rodando na porta ${port}`);
+    console.log(`Servidor rodando na porta ${port}`);
 });

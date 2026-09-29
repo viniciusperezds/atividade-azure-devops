@@ -1,7 +1,7 @@
 const express = require('express');
 const appInsights = require('applicationinsights');
 
-// Application Insights - só inicia se a connection string estiver configurada no WebApp
+// Configuração do Application Insights
 if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
     appInsights.setup(process.env.APPLICATIONINSIGHTS_CONNECTION_STRING)
         .setAutoDependencyCorrelation(true)
@@ -21,14 +21,14 @@ const sql = require('mssql');
 const app = express();
 const port = process.env.PORT || 8080;
 
-// Dados de conexão vêm das variáveis de ambiente do WebApp (az webapp config appsettings set)
+// Configuração do Banco de Dados (Os alunos devem preencher as variáveis no Azure WebApp)
 const dbConfig = {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    server: process.env.DB_SERVER,
+    server: process.env.DB_SERVER, // Ex: meuserver.database.windows.net
     database: process.env.DB_NAME,
     options: {
-        encrypt: true,
+        encrypt: true, // Necessário para Azure SQL
         trustServerCertificate: false
     }
 };
@@ -109,11 +109,11 @@ app.get('/', (req, res) => {
     `);
 });
 
-// Lista os filmes cadastrados na tabela Filmes
 app.get('/tema', async (req, res) => {
     try {
+        // ALUNOS: Usem a configuração dbConfig para conectar no banco e fazer o SELECT na tabela do tema escolhido!
         await sql.connect(dbConfig);
-        const result = await sql.query`SELECT Id, Titulo, Genero, Ano FROM Filmes ORDER BY Ano DESC`;
+        const result = await sql.query`SELECT Id, Titulo, Genero, Ano FROM Filmes ORDER BY Ano DESC`; // ALTERAR AQUI!
 
         res.json(result.recordset);
     } catch (err) {
